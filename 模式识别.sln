@@ -1,0 +1,23 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29102.190
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{888888A0-9F3D-457C-B088-3A5042F75D52}") = "模式识别", "模式识别\模式识别.pyproj", "{F635E585-60DA-41DA-90C6-64A069D11F7B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{F635E585-60DA-41DA-90C6-64A069D11F7B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F635E585-60DA-41DA-90C6-64A069D11F7B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2FA9FB95-C7D7-40F8-9C87-A21E4D8A447E}
+	EndGlobalSection
+EndGlobal
