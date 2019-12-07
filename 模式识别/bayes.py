@@ -5,6 +5,7 @@ import numpy.linalg as lg
 import math
 import random
 import draw
+import mlp
 
 def fa(x, mu_f, mu_m, sigma_f, sigma_m):
     """bayes判别准则"""
@@ -36,14 +37,6 @@ def divide_data(data, idx, flag=1):
     if flag:
         return a_f, a_m
     else:
-        # naf, nam = np.zeros((length, 10)), np.zeros((length, 10))
-        # rand_naf = random_int_list(10, 0, a_f.shape[1] - 1)
-        # rand_nam = random_int_list(10, 0, a_m.shape[1] - 1)
-        # for i in range(10):
-        #     for j in range(length):
-        #         naf[j, i] = a_f[j, rand_naf[i]]
-        #         nam[j, i] = a_m[j, rand_nam[i]]
-        # return naf, nam
         return a_f[:, 0:10], a_m[:, 0:10]
 
 
@@ -91,33 +84,78 @@ def computer_para(mu_f, mu_m, sigma_f, sigma_m):
     return a
     
 
-if __name__ == "__main__":
-    idx = [i for i in range(2)]     #特征选取
-    all_flag = 1                    #选择全部训练样本
-    filename = 'dataset3.txt' #训练数据集
-    vali_filename = 'vali_500_with_tag.txt' #验证数据集
+def predict_data(mu_f, mu_m, cov_f, cov_m, idx):
+    """对无标签数据进行预测，并输出至文件夹中"""
+    pred_filename = 'vali_100_no_tag.txt'   #预测数据集
+    write_filename = 'pred_by_bayes.txt'
+    prediction_data = read_data(pred_filename)
+    pred_data, pred_labels = mlp.load_data(prediction_data, idx)
+    i = 0
+    while i < len(pred_labels):
+        f = fa(pred_data[i], mu_f, mu_m, cov_f, cov_m)
+        if f > 0:
+            prediction_data[i].append('f')
+        else:
+            prediction_data[i].append('m')
+        i += 1
+    with open(write_filename, 'w') as f:
+        for row in prediction_data:
+            for elem in row:
+                f.write(str(elem) + '\t')
+            f.write('\n')
 
-    data = read_data(filename)
-    vali_data = read_data(vali_filename)
+
+def run(train_filename, test_filename, idx=[i for i in range(10)], all_flag=1):
+    data = read_data(train_filename)
+    vali_data = read_data(test_filename)
     xfs, xms = divide_data(data, idx=idx, flag=all_flag)
     mu_f = np.mean(xfs, axis=1)
     mu_m = np.mean(xms, axis=1)
     cov_f = np.cov(xfs)
     cov_m = np.cov(xms)
-    xfs, xms = divide_data(data=vali_data, idx=idx)
-    rights_f = validate_data(xfs, mu_f, mu_m, cov_f, cov_m, 'female')
-    rights_m = validate_data(xms, mu_f, mu_m, cov_f, cov_m, 'male')
-    error = 1 - (rights_f + rights_m) / (xfs.shape[1] + xms.shape[1])
+    xfs_val, xms_val = divide_data(data=vali_data, idx=idx)
+    rights_f = validate_data(xfs_val, mu_f, mu_m, cov_f, cov_m, 'female')
+    rights_m = validate_data(xms_val, mu_f, mu_m, cov_f, cov_m, 'male')
+    error = 1 - (rights_f + rights_m) / (xfs_val.shape[1] + xms_val.shape[1])
+    print('选取训练样本个数:' + str(xfs.shape[1] + xms.shape[1]))
+    print('选取特征维数：' + str(idx))
     print("bayes测试错误率：" + str(format(error, '.4f')))
+    print()
 
-    draw.draw_sample(xfs, xms, idx)
-    a = computer_para(mu_f, mu_m, cov_f, cov_m)
-    x_min = min(min(xfs[idx[0]]), min(xms[idx[0]]))
-    x_max = max(max(xfs[idx[0]]), max(xms[idx[0]]))
-    y_min = min(min(xfs[idx[1]]), min(xms[idx[1]]))
-    y_max = max(max(xfs[idx[1]]), max(xms[idx[1]]))
-    draw.draw_quadratic_curve(a, [x_min-10, x_max+10], [y_min-10, y_max+10])
-    plt.show()
+    if len(idx) == 2:
+        draw.draw_sample(xfs, xms, idx)
+        a = computer_para(mu_f, mu_m, cov_f, cov_m)
+        x_min = min(min(xfs[0]), min(xms[0]))
+        x_max = max(max(xfs[0]), max(xms[0]))
+        y_min = min(min(xfs[1]), min(xms[1]))
+        y_max = max(max(xfs[1]), max(xms[1]))
+        draw.draw_curve(a, [x_min-10, x_max+10], [y_min-10, y_max+10])
+        plt.title('size of samples:' + str(xms.shape[1] + xfs.shape[1]))
+        plt.show()
+
+    #预测数据 在全部样本数 全部特征情况下
+    if all_flag == 1 and len(idx) == 10:
+        predict_data(mu_f, mu_m, cov_f, cov_m, idx)
 
 
+if __name__ == "__main__":
+    filename = 'dataset3.txt' #训练数据集
+    vali_filename = 'vali_500_with_tag.txt' #验证数据集
+    #2特征全部样本
+    idx = [i for i in range(2)]     #特征选取
+    all_flag = 1                    #选择全部训练样本
+    run(filename, vali_filename, idx, all_flag)
+    #10特征全部样本
+    idx = [i for i in range(10)]
+    all_flag = 1
+    run(filename, vali_filename, idx, all_flag)
+    #2特征20个样本
+    idx = [i for i in range(2)]
+    all_flag = 0
+    run(filename, vali_filename, idx, all_flag)
+    #10特征20个样本
+    idx = [i for i in range(10)]
+    all_flag = 0
+    run(filename, vali_filename, idx, all_flag)
 
+   
